@@ -6,31 +6,91 @@
     <title>ccl</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            overflow: hidden;
             background: #fff;
         }
-        h1 {
-            font-size: 3rem;
+        .ccl {
+            position: absolute;
+            font-size: 2rem;
             font-family: Arial, sans-serif;
             color: #222;
+            user-select: none;
+            transition: transform 0.2s, color 0.2s;
+            pointer-events: auto;
+        }
+        .ccl.hovered {
+            color: #e91e63;
+            transform: scale(2) rotate(10deg);
+            z-index: 10;
         }
     </style>
 </head>
 <body>
-    <h1>ccl</h1>
+    <!-- 动态ccl元素由JS生成 -->
 </body>
 <script type="text/javascript">
-     !function(e,t,a){
-        function r(){
-            for(var e=0;e<s.length;e++)s[e].alpha<=0?(t.body.removeChild(s[e].el),s.splice(e,1)):(s[e].y--,s[e].scale+=.004,s[e].alpha-=.013,s[e].el.style.cssText="left:"+s[e].x+"px;top:"+s[e].y+"px;opacity:"+s[e].alpha+";transform:scale("+s[e].scale+","+s[e].scale+") rotate(45deg);background:"+s[e].color+";z-index:99999");requestAnimationFrame(r)}
-        function n(){var t="function"==typeof e.onclick&&e.onclick;e.onclick=function(e){t&&t(),o(e)}}
-        function o(e){var a=t.createElement("div");a.className="heart",s.push({el:a,x:e.clientX-5,y:e.clientY-5,scale:1,alpha:1,color:c()}),t.body.appendChild(a)}
-        function i(e){var a=t.createElement("style");a.type="text/css";try{a.appendChild(t.createTextNode(e))}catch(t){a.styleSheet.cssText=e}t.getElementsByTagName("head")[0].appendChild(a)}
-        function c(){return"rgb("+~~(255*Math.random())+","+~~(255*Math.random())+","+~~(255*Math.random())+")"}
-        var s=[];e.requestAnimationFrame=e.requestAnimationFrame||e.webkitRequestAnimationFrame||e.mozRequestAnimationFrame||e.oRequestAnimationFrame||e.msRequestAnimationFrame||function(e){setTimeout(e,1e3/60)},i(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}");n(),r()}(window,document);
+// 动态ccl效果
+const CCL_COUNT = 20;
+const ccls = [];
+const area = { width: window.innerWidth, height: window.innerHeight };
+
+function random(min, max) { return Math.random() * (max - min) + min; }
+
+for (let i = 0; i < CCL_COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'ccl';
+    el.textContent = 'ccl';
+    document.body.appendChild(el);
+    // 随机初始参数
+    ccls.push({
+        el,
+        x: random(0, area.width - 60),
+        y: random(0, area.height - 40),
+        dx: random(-2, 2),
+        dy: random(-2, 2),
+        scale: random(0.8, 2),
+        dscale: random(-0.01, 0.01),
+        hovered: false
+    });
+    el.addEventListener('mouseenter', function() {
+        el.classList.add('hovered');
+        ccls[i].hovered = true;
+    });
+    el.addEventListener('mouseleave', function() {
+        el.classList.remove('hovered');
+        ccls[i].hovered = false;
+    });
+}
+
+function animateCCL() {
+    area.width = window.innerWidth;
+    area.height = window.innerHeight;
+    for (const c of ccls) {
+        if (!c.hovered) {
+            c.x += c.dx;
+            c.y += c.dy;
+            c.scale += c.dscale;
+            if (c.scale > 2.5 || c.scale < 0.7) c.dscale *= -1;
+            // 碰到边界反弹
+            if (c.x < 0 || c.x > area.width - 60) c.dx *= -1;
+            if (c.y < 0 || c.y > area.height - 40) c.dy *= -1;
+        }
+        c.el.style.left = c.x + 'px';
+        c.el.style.top = c.y + 'px';
+        c.el.style.transform = `scale(${c.scale})`;
+    }
+    requestAnimationFrame(animateCCL);
+}
+animateCCL();
+
+!function(e,t,a){
+    function r(){
+        for(var e=0;e<s.length;e++)s[e].alpha<=0?(t.body.removeChild(s[e].el),s.splice(e,1)):(s[e].y--,s[e].scale+=.004,s[e].alpha-=.013,s[e].el.style.cssText="left:"+s[e].x+"px;top:"+s[e].y+"px;opacity:"+s[e].alpha+";transform:scale("+s[e].scale+","+s[e].scale+") rotate(45deg);background:"+s[e].color+";z-index:99999");requestAnimationFrame(r)}
+    function n(){var t="function"==typeof e.onclick&&e.onclick;e.onclick=function(e){t&&t(),o(e)}}
+    function o(e){var a=t.createElement("div");a.className="heart",s.push({el:a,x:e.clientX-5,y:e.clientY-5,scale:1,alpha:1,color:c()}),t.body.appendChild(a)}
+    function i(e){var a=t.createElement("style");a.type="text/css";try{a.appendChild(t.createTextNode(e))}catch(t){a.styleSheet.cssText=e}t.getElementsByTagName("head")[0].appendChild(a)}
+    function c(){return"rgb("+~~(255*Math.random())+","+~~(255*Math.random())+","+~~(255*Math.random())+")"}
+    var s=[];e.requestAnimationFrame=e.requestAnimationFrame||e.webkitRequestAnimationFrame||e.mozRequestAnimationFrame||e.oRequestAnimationFrame||e.msRequestAnimationFrame||function(e){setTimeout(e,1e3/60)},i(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: fixed;}.heart:after{top: -5px;}.heart:before{left: -5px;}");n(),r()}(window,document);
 </script>
 </html> 
